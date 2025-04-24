@@ -3,6 +3,8 @@
 Nook is a small terminal program that is driven by nook script.
 Nook script is a simple lisp style programming langauge that can be used to interact with the underlying OS.
 
+![screenshot](/assets/screenshot.png)
+
 # TODO:
 * [ ] add git status information to the header
 * [ ] add a footer
