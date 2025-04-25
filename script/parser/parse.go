@@ -32,7 +32,7 @@ func (p *Parser) Parse() ast.Expr {
 
 	case token.Atom:
 		tok := p.lexer.take()
-		return ast.Atom{Tok: tok, Value: tok.Value[1:]}
+		return ast.Atom{Tok: tok, Value: tok.Value}
 
 	case token.String:
 		tok := p.lexer.take()
@@ -90,6 +90,12 @@ func (p *Parser) Parse() ast.Expr {
 
 		return ast.Bool{Tok: tok, Value: value}
 
+	case token.Flag:
+		tok := p.lexer.take()
+		return ast.Flag{Tok: tok, Value: tok.Value}
+	case token.Path:
+		tok := p.lexer.take()
+		return ast.Path{Tok: tok, Value: tok.Value}
 	case token.Identifier:
 		return ast.Identifier{Value: p.lexer.take()}
 

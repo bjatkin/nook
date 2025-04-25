@@ -33,7 +33,7 @@ func NewModel() (Model, error) {
 		editor: editor{
 			content: "(",
 			indent:  1,
-			vm:      vm.NewVM(),
+			vm:      vm.NewVM(pwd),
 		},
 	}, nil
 }
@@ -51,6 +51,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
+	header := m.header.Update(msg)
+	m.header = header
 	editor, cmd := m.editor.Update(msg)
 	m.editor = editor
 

@@ -13,10 +13,12 @@ Nook script is a simple lisp style programming langauge that can be used to inte
 * [ ] figure out a good color scheme to make picking colors easier
 * [ ] should nook-script be in it's own repo?
 * [ ] add support for more things in nook script.
-    * [ ] `cd` to change directories.
-    * [ ] `exe` to execute a command with argument.
+    * [x] `cd` to change directories.
+    * [ ] `ex` to execute a command with argument.
     * [ ] `cp` to copy files.
     * [ ] `mv` to move files.
+    * [ ] `mkdir` to make a directory
+    * [ ] `touch` to make a file
     * [ ] support for `-f` and `--flag` as values in the language.
     * [ ] support for `./path` and `/root/path` as value in the language.
     * [ ] `fn` to support functions
@@ -24,5 +26,5 @@ Nook script is a simple lisp style programming langauge that can be used to inte
     * [ ] `{"value" :ok}` for tuples.
     * [ ] `{name="lex" status=:ok}` for named tuples.
     * [ ] support type checking and type inference systems at "compile" time.
-    * [ ] how dumb is it if the operator for the s-expr can be an expression so that functions can be called just using their identifier?
+    * [ ] how dumb is it if the operator for the s-expr can be an expression so that functions can be called just using their identifier? (It's probably fine if we do type checking ahead of time)
 * [ ] show script errors directly inline with the code.

@@ -2,6 +2,8 @@ package vm
 
 import (
 	"fmt"
+	"path"
+	"strings"
 
 	"github.com/bjatkin/nook/script/ast"
 	"github.com/bjatkin/nook/script/token"
@@ -27,17 +29,24 @@ func (s *scope) setIdent(ident string, value any) {
 }
 
 type VM struct {
-	scope *scope
+	workingDir string
+	scope      *scope
 }
 
-func NewVM() VM {
+func NewVM(workingDir string) VM {
 	return VM{
+		workingDir: workingDir,
 		scope: &scope{
 			idents: make(map[string]any),
 		},
 	}
 }
 
+func (vm *VM) WorkingDir() string {
+	return vm.workingDir
+}
+
+// TODO: send back editor events?
 func (vm *VM) Eval(expr ast.Expr) (any, error) {
 	switch expr := expr.(type) {
 	case ast.SExpr:
@@ -49,6 +58,12 @@ func (vm *VM) Eval(expr ast.Expr) (any, error) {
 	case ast.Bool:
 		return expr.Value, nil
 	case ast.String:
+		return expr.Value, nil
+	case ast.Atom:
+		return expr.Value, nil
+	case ast.Flag:
+		return expr.Value, nil
+	case ast.Path:
 		return expr.Value, nil
 	case ast.Identifier:
 		val, ok := vm.scope.lookupIdent(expr.Value.Value)
@@ -150,6 +165,33 @@ func (vm *VM) evalSexpr(operator token.Token, args []ast.Expr) (any, error) {
 
 		vm.scope.setIdent(ident.Value.Value, value)
 		return nil, nil
+	case token.Identifier:
+		switch operator.Value {
+		case "cd":
+			if len(args) != 1 {
+				return nil, fmt.Errorf("cd takes exactly 1 argument")
+			}
+
+			dir, err := vm.Eval(args[0])
+			if err != nil {
+				return nil, fmt.Errorf("failed to evali first argument")
+			}
+
+			strDir, ok := dir.(string)
+			if !ok {
+				return nil, fmt.Errorf("'%v' is not a valid path", dir)
+			}
+
+			if strings.HasPrefix(strDir, "/") {
+				vm.workingDir = strDir
+			} else {
+				vm.workingDir = path.Join(vm.workingDir, strDir)
+			}
+
+			return nil, nil
+		default:
+			panic("invalid operator: " + operator.Value)
+		}
 	default:
 		return nil, fmt.Errorf("'%v' is not a valid s-expr operator", operator.Value)
 	}

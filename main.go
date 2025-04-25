@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bjatkin/nook/model"
-
 	tea "github.com/charmbracelet/bubbletea"
+
+	"github.com/bjatkin/nook/model"
 )
 
 func main() {

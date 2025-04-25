@@ -1,7 +1,10 @@
 package parser
 
 import (
+	"reflect"
 	"testing"
+
+	"github.com/bjatkin/nook/script/token"
 )
 
 func Test_matchHex(t *testing.T) {
@@ -123,56 +126,46 @@ func Test_matchNumber(t *testing.T) {
 		bytes []byte
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantLen uint
-		wantOk  bool
+		name string
+		args args
+		want *match
 	}{
 		{
-			name:    "decimal number",
-			args:    args{bytes: []byte("012_456")},
-			wantLen: 7,
-			wantOk:  true,
+			name: "decimal number",
+			args: args{bytes: []byte("012_456")},
+			want: &match{len: 7, kind: token.Int},
 		},
 		{
-			name:    "hex number",
-			args:    args{bytes: []byte("0xAB_C0")},
-			wantLen: 7,
-			wantOk:  true,
+			name: "hex number",
+			args: args{bytes: []byte("0xAB_C0")},
+			want: &match{len: 7, kind: token.Int},
 		},
 		{
-			name:    "octal number",
-			args:    args{bytes: []byte("0o17_46")},
-			wantLen: 7,
-			wantOk:  true,
+			name: "octal number",
+			args: args{bytes: []byte("0o17_46")},
+			want: &match{len: 7, kind: token.Int},
 		},
 		{
-			name:    "binary number",
-			args:    args{bytes: []byte("0b0110_1111")},
-			wantLen: 11,
-			wantOk:  true,
+			name: "binary number",
+			args: args{bytes: []byte("0b0110_1111")},
+			want: &match{len: 11, kind: token.Int},
 		},
 		{
-			name:    "keyword",
-			args:    args{bytes: []byte("else")},
-			wantLen: 0,
-			wantOk:  false,
+			name: "keyword",
+			args: args{bytes: []byte("else")},
+			want: nil,
 		},
 		{
-			name:    "invalid number",
-			args:    args{bytes: []byte("10)")},
-			wantLen: 2,
-			wantOk:  true,
+			name: "invalid number",
+			args: args{bytes: []byte("10)")},
+			want: &match{len: 2, kind: token.Int},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := matchInt(tt.args.bytes)
-			if got != tt.wantLen {
-				t.Errorf("matchNumber() got = %v, want %v", got, tt.wantLen)
-			}
-			if got1 != tt.wantOk {
-				t.Errorf("matchNumber() got1 = %v, want %v", got1, tt.wantOk)
+			got := matchInt(tt.args.bytes)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("matchNumber() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -183,32 +176,26 @@ func Test_matchFloat(t *testing.T) {
 		bytes []byte
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantLen uint
-		wantOk  bool
+		name string
+		args args
+		want *match
 	}{
 		{
-			name:    "float number",
-			args:    args{bytes: []byte("43.54")},
-			wantLen: 5,
-			wantOk:  true,
+			name: "float number",
+			args: args{bytes: []byte("43.54")},
+			want: &match{len: 5, kind: token.Float},
 		},
 		{
-			name:    "int number",
-			args:    args{bytes: []byte("1234")},
-			wantLen: 0,
-			wantOk:  false,
+			name: "int number",
+			args: args{bytes: []byte("1234")},
+			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := matchFloat(tt.args.bytes)
-			if got != tt.wantLen {
-				t.Errorf("matchFloat() got = %v, want %v", got, tt.wantLen)
-			}
-			if got1 != tt.wantOk {
-				t.Errorf("matchFloat() got1 = %v, want %v", got1, tt.wantOk)
+			got := matchFloat(tt.args.bytes)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("matchFloat() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -219,38 +206,31 @@ func Test_matchAtom(t *testing.T) {
 		bytes []byte
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantLen uint
-		wantOk  bool
+		name string
+		args args
+		want *match
 	}{
 		{
-			name:    "valid atom",
-			args:    args{bytes: []byte(":validAtom")},
-			wantLen: 10,
-			wantOk:  true,
+			name: "valid atom",
+			args: args{bytes: []byte(":validAtom")},
+			want: &match{len: 10, kind: token.Atom},
 		},
 		{
-			name:    "short atom",
-			args:    args{bytes: []byte(":ok")},
-			wantLen: 3,
-			wantOk:  true,
+			name: "short atom",
+			args: args{bytes: []byte(":ok")},
+			want: &match{len: 3, kind: token.Atom},
 		},
 		{
-			name:    "invalid atom",
-			args:    args{bytes: []byte("test")},
-			wantLen: 0,
-			wantOk:  false,
+			name: "invalid atom",
+			args: args{bytes: []byte("test")},
+			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotLen, gotOk := matchAtom(tt.args.bytes)
-			if gotLen != tt.wantLen {
-				t.Errorf("matchAtom() got = %v, want %v", gotLen, tt.wantLen)
-			}
-			if gotOk != tt.wantOk {
-				t.Errorf("matchAtom() got1 = %v, want %v", gotOk, tt.wantOk)
+			got := matchAtom(tt.args.bytes)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("matchAtom() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -261,32 +241,26 @@ func Test_matchString(t *testing.T) {
 		bytes []byte
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantLen uint
-		wantOk  bool
+		name string
+		args args
+		want *match
 	}{
 		{
-			name:    "valid string",
-			args:    args{bytes: []byte("\"hello world\"")},
-			wantLen: 13,
-			wantOk:  true,
+			name: "valid string",
+			args: args{bytes: []byte("\"hello world\"")},
+			want: &match{len: 13, kind: token.String},
 		},
 		{
-			name:    "invalid string",
-			args:    args{bytes: []byte("test")},
-			wantLen: 0,
-			wantOk:  false,
+			name: "invalid string",
+			args: args{bytes: []byte("test")},
+			want: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := matchString(tt.args.bytes)
-			if got != tt.wantLen {
-				t.Errorf("matchString() got = %v, want %v", got, tt.wantLen)
-			}
-			if got1 != tt.wantOk {
-				t.Errorf("matchString() got1 = %v, want %v", got1, tt.wantOk)
+			got := matchString(tt.args.bytes)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("matchString() got = %#v, want %#v", got, tt.want)
 			}
 		})
 	}
@@ -297,38 +271,31 @@ func Test_lexer_matchIdentifier(t *testing.T) {
 		bytes []byte
 	}
 	tests := []struct {
-		name    string
-		args    args
-		wantLen uint
-		wantOk  bool
+		name string
+		args args
+		want *match
 	}{
 		{
-			name:    "invalid identifier",
-			args:    args{bytes: []byte("10")},
-			wantLen: 0,
-			wantOk:  false,
+			name: "invalid identifier",
+			args: args{bytes: []byte("10")},
+			want: nil,
 		},
 		{
-			name:    "valid identifier",
-			args:    args{bytes: []byte("test10")},
-			wantLen: 6,
-			wantOk:  true,
+			name: "valid identifier",
+			args: args{bytes: []byte("test10")},
+			want: &match{len: 6, kind: token.Identifier},
 		},
 		{
-			name:    "trailing space",
-			args:    args{bytes: []byte("a ")},
-			wantLen: 1,
-			wantOk:  true,
+			name: "trailing space",
+			args: args{bytes: []byte("a ")},
+			want: &match{len: 1, kind: token.Identifier},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := matchIdentifier(tt.args.bytes)
-			if got != tt.wantLen {
-				t.Errorf("lexer.matchIdentifier() got = %v, want %v", got, tt.wantLen)
-			}
-			if got1 != tt.wantOk {
-				t.Errorf("lexer.matchIdentifier() got1 = %v, want %v", got1, tt.wantOk)
+			got := matchIdentifier(tt.args.bytes)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("lexer.matchIdentifier() got = %v, want %v", got, tt.want)
 			}
 		})
 	}

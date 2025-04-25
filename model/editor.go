@@ -11,6 +11,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+type changeDirMsg string
+
 type entry struct {
 	content string
 	output  string
@@ -18,6 +20,7 @@ type entry struct {
 }
 
 type editor struct {
+	debug            []string
 	history          []entry
 	copyHistoryIndex int
 	content          string
@@ -77,6 +80,9 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 			if e.indent <= 0 {
 				p := parser.NewParser([]byte(e.content))
 				ast := p.Parse()
+				e.debug = append(e.debug, fmt.Sprint("ast: ", ast))
+
+				pwd := e.vm.WorkingDir()
 				result, err := e.vm.Eval(ast)
 
 				// reset the content
@@ -89,7 +95,14 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 				e.content = "("
 				e.indent = 1
 				e.copyHistoryIndex = len(e.history)
-				return e, nil
+				e.debug = append(e.debug, fmt.Sprint("pwd: ", e.vm.WorkingDir()))
+
+				if pwd != e.vm.WorkingDir() {
+					msg := changeDirMsg(e.vm.WorkingDir())
+					return e, func() tea.Msg { return msg }
+				} else {
+					return e, nil
+				}
 			}
 
 			e.content += "\n" + strings.Repeat("\t", e.indent)
@@ -147,6 +160,7 @@ func (e editor) View() string {
 
 	// TODO: use the script parser to get an ast and do syntax hilighting
 	view += renderContent(e.content) + cursor.Render("█")
+	view += "\n\n" + strings.Join(e.debug, "\n")
 
 	return view
 }

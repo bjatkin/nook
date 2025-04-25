@@ -65,7 +65,7 @@ func TestParser_Parse(t *testing.T) {
 				lexer: tt.fields.lexer,
 			}
 			if got := p.Parse(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parser.Parse() = %v, want %v", got, tt.want)
+				t.Errorf("Parser.Parse() = %v\nwant %v", got, tt.want)
 			}
 		})
 	}

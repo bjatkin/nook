@@ -42,6 +42,18 @@ type Bool struct {
 	Value bool
 }
 
+type Path struct {
+	Expr
+	Tok   token.Token
+	Value string
+}
+
+type Flag struct {
+	Expr
+	Tok   token.Token
+	Value string
+}
+
 type Identifier struct {
 	Expr
 	Value token.Token
