@@ -23,16 +23,16 @@ func (f footer) View() string {
 
 	mode := layout.Text{
 		Text:  layout.Pad(3, 3, f.mode),
-		Style: colors.Emphasis,
+		Style: colors.Primary,
 	}
-	left := layout.NewHContainer(f.width/2, layout.LeftToRight, colors.Emphasis2)
+	left := layout.NewHContainer(f.width/2, layout.LeftToRight, colors.Background1)
 	left.Content = append(left.Content, mode)
 
 	version := layout.Text{
 		Text:  " v0.0.1 ",
-		Style: colors.Emphasis,
+		Style: colors.Primary,
 	}
-	right := layout.NewHContainer((f.width/2)-1, layout.RightToLeft, colors.Emphasis2)
+	right := layout.NewHContainer((f.width/2)-1, layout.RightToLeft, colors.Background1)
 	right.Content = append(right.Content, version)
 
 	// TODO: seems like weird style issues pop up when you use the full terminal width

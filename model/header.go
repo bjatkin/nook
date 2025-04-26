@@ -52,7 +52,7 @@ func (h header) View() string {
 		return ""
 	}
 
-	cont := layout.NewHContainer(h.width-1, layout.LeftToRight, colors.Emphasis2)
+	cont := layout.NewHContainer(h.width-1, layout.LeftToRight, colors.Background1)
 
 	dir := strings.TrimPrefix(h.workingDir, h.homeDir+"/")
 	dir = layout.Pad(3, 3, dir)
@@ -61,7 +61,7 @@ func (h header) View() string {
 		cont.Content,
 		layout.Text{
 			Text:  dir,
-			Style: colors.Emphasis,
+			Style: colors.Primary,
 		},
 	)
 
@@ -69,9 +69,9 @@ func (h header) View() string {
 		return cont.String()
 	}
 
-	style := colors.Emphasis
+	style := colors.Secondary
 	if h.gitIsDirty {
-		style = colors.Second
+		style = colors.Third
 	}
 
 	cont.Content = append(
