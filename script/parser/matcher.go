@@ -1,6 +1,8 @@
 package parser
 
-import "github.com/bjatkin/nook/script/token"
+import (
+	"github.com/bjatkin/nook/script/token"
+)
 
 func isDecimal(char byte) bool {
 	return char >= '0' && char <= '9'
@@ -109,17 +111,28 @@ func matchPath(bytes []byte) *match {
 		if char == '_' {
 			continue
 		}
+		if char == '-' {
+			continue
+		}
 		if isAlpha(char) {
 			continue
 		}
+		if isDecimal(char) {
+			continue
+		}
+
 		return &match{len: uint(i), kind: token.Path}
 	}
 
-	return nil
+	return &match{len: uint(len(bytes)), kind: token.Path}
 }
 
 func matchPathPrefix(bytes []byte) bool {
 	if len(bytes) > 0 && bytes[0] == '/' {
+		return true
+	}
+
+	if len(bytes) > 0 && bytes[0] == '.' {
 		return true
 	}
 
@@ -162,7 +175,7 @@ func matchFlag(bytes []byte) *match {
 			return nil
 		}
 
-		return &match{len: uint(i), kind: token.Flag}
+		return &match{len: uint(i + 1), kind: token.Flag}
 	}
 
 	return &match{len: uint(len(bytes)), kind: token.Flag}

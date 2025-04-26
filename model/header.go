@@ -65,11 +65,16 @@ func (h header) View() string {
 		return cont.String()
 	}
 
+	style := colors.Emphasis
+	if h.gitIsDirty {
+		style = colors.Second
+	}
+
 	cont.Content = append(
 		cont.Content,
 		layout.Text{
 			Text:  layout.Pad(1, 1, h.gitBranch),
-			Style: colors.Second,
+			Style: style,
 		},
 	)
 
