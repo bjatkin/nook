@@ -31,7 +31,7 @@ func NewModel() (Model, error) {
 		workingDir: pwd,
 		homeDir:    home,
 	}
-	header = header.Update(changeDirMsg(pwd))
+	header, _ = header.Update(changeDirMsg(pwd))
 
 	return Model{
 		header: header,
@@ -62,14 +62,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	header := m.header.Update(msg)
+	header, headerCmd := m.header.Update(msg)
 	m.header = header
-	editor, cmd := m.editor.Update(msg)
+	editor, editorCmd := m.editor.Update(msg)
 	m.editor = editor
 	footer := m.footer.Update(msg)
 	m.footer = footer
 
-	return m, cmd
+	return m, tea.Batch(headerCmd, editorCmd)
 }
 
 func (m Model) View() string {

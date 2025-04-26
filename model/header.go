@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"os/exec"
 	"strings"
 
@@ -17,7 +18,7 @@ type header struct {
 	width      int
 }
 
-func (h header) Update(msg tea.Msg) header {
+func (h header) Update(msg tea.Msg) (header, tea.Cmd) {
 	if changeDir, ok := msg.(changeDirMsg); ok {
 		h.workingDir = string(changeDir)
 		cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
@@ -26,7 +27,7 @@ func (h header) Update(msg tea.Msg) header {
 		if err != nil {
 			// just treat this directory as if it's not a git repo
 			h.gitBranch = ""
-			return h
+			return h, nil
 		}
 
 		h.gitBranch = strings.Trim(string(branch), "\n")
@@ -34,13 +35,16 @@ func (h header) Update(msg tea.Msg) header {
 		cmd.Dir = string(changeDir)
 		isClean, err := cmd.Output()
 		if err != nil {
-			return h
+			return h, nil
 		}
 
 		h.gitIsDirty = len(isClean) > 0
+		return h, func() tea.Msg {
+			return debugInfoMsg(fmt.Sprintf("git status '%s', '%v'", h.gitBranch, string(isClean)))
+		}
 	}
 
-	return h
+	return h, nil
 }
 
 func (h header) View() string {

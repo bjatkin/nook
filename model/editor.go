@@ -12,6 +12,7 @@ import (
 )
 
 type changeDirMsg string
+type debugInfoMsg string
 
 type entry struct {
 	content string
@@ -38,6 +39,8 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 	e.debug = append(e.debug, fmt.Sprintf("indent '%d' nesting '%d'", indent, nesting))
 
 	switch msg := msg.(type) {
+	case debugInfoMsg:
+		e.debug = append(e.debug, fmt.Sprintf("debug msg: '%s'", string(msg)))
 	case tea.KeyMsg:
 		key := msg.String()
 		switch key {
