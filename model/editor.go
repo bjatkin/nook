@@ -21,20 +21,27 @@ type entry struct {
 
 type editor struct {
 	debug            []string
+	showDebug        bool
 	history          []entry
+	workingDir       string
 	copyHistoryIndex int
 	content          string
-	indent           int
-	width            uint
+	width            int
+	height           int
 	vm               vm.VM
 }
 
 func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
+	e.debug = []string{}
+	// TODO: remove me after testing is done
+	indent, nesting := getNesting(e.content)
+	e.debug = append(e.debug, fmt.Sprintf("indent '%d' nesting '%d'", indent, nesting))
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		key := msg.String()
 		switch key {
-		case "left", "right":
+		case "left", "right", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11", "f12":
 			// capture these events so we don't print them to the editor
 		case "up":
 			if e.copyHistoryIndex > 0 {
@@ -56,19 +63,11 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 			}
 		case "ctrl+c":
 			return e, tea.Quit
+		case "ctrl+d":
+			e.showDebug = !e.showDebug
 		case "backspace":
 			if len(e.content) == 0 {
 				return e, nil
-			}
-
-			// deleting a closing paren
-			if e.content[len(e.content)-1] == ')' {
-				e.indent++
-			}
-
-			// deleteing an opening paren
-			if e.content[len(e.content)-1] == '(' {
-				e.indent--
 			}
 
 			e.content = e.content[:len(e.content)-1]
@@ -77,12 +76,17 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 			e.content += "\t"
 			return e, nil
 		case "enter":
-			if e.indent <= 0 {
+			if e.content == "(exit)" || e.content == "exit" {
+				return e, tea.Quit
+			}
+
+			indent, nesting := getNesting(e.content)
+			if nesting <= 0 {
 				p := parser.NewParser([]byte(e.content))
 				ast := p.Parse()
 				e.debug = append(e.debug, fmt.Sprint("ast: ", ast))
 
-				pwd := e.vm.WorkingDir()
+				// TODO: eval actually needs to happen in a command in case it's a long runing operation
 				result, err := e.vm.Eval(ast)
 
 				// reset the content
@@ -93,27 +97,23 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 				})
 
 				e.content = "("
-				e.indent = 1
 				e.copyHistoryIndex = len(e.history)
 				e.debug = append(e.debug, fmt.Sprint("pwd: ", e.vm.WorkingDir()))
 
-				if pwd != e.vm.WorkingDir() {
-					msg := changeDirMsg(e.vm.WorkingDir())
+				if e.workingDir != e.vm.WorkingDir() {
+					e.workingDir = e.vm.WorkingDir()
+					msg := changeDirMsg(e.workingDir)
+					e.debug = append(e.debug, fmt.Sprintf("msg: %s", e.workingDir))
 					return e, func() tea.Msg { return msg }
 				} else {
 					return e, nil
 				}
 			}
 
-			e.content += "\n" + strings.Repeat("\t", e.indent)
-			return e, nil
-		case "(":
-			e.content += "("
-			e.indent += 1
-			return e, nil
-		case ")":
-			e.content += ")"
-			e.indent -= 1
+			e.content += "\n"
+			if indent > 0 {
+				e.content += strings.Repeat("\t", indent)
+			}
 			return e, nil
 		default:
 			e.content += key
@@ -159,8 +159,19 @@ func (e editor) View() string {
 	}
 
 	// TODO: use the script parser to get an ast and do syntax hilighting
+	// TODO: make it possible to move the cursor around
 	view += renderContent(e.content) + cursor.Render("█")
-	view += "\n\n" + strings.Join(e.debug, "\n")
+
+	if e.showDebug {
+		view += "\n\n" + strings.Join(e.debug, "\n")
+	}
+
+	// TODO: use containers for this
+	height := strings.Count(view, "\n")
+	for height+1 < int(e.height) {
+		view += "\n"
+		height++
+	}
 
 	return view
 }
@@ -184,4 +195,25 @@ func renderContent(content string) string {
 	}
 
 	return view
+}
+
+func getNesting(code string) (int, int) {
+	indent := 0
+	lines := strings.Split(code, "\n")
+	nesting := 0
+
+	for _, line := range lines {
+		open := strings.Count(line, "(")
+		close := strings.Count(line, ")")
+		nest := open - close
+		nesting += nest
+		if nest > 0 {
+			indent++
+		}
+		if nest < 0 {
+			indent--
+		}
+	}
+
+	return indent, nesting
 }

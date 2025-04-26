@@ -2,6 +2,8 @@ package vm
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"path"
 	"strings"
 
@@ -182,15 +184,86 @@ func (vm *VM) evalSexpr(operator token.Token, args []ast.Expr) (any, error) {
 				return nil, fmt.Errorf("'%v' is not a valid path", dir)
 			}
 
-			if strings.HasPrefix(strDir, "/") {
-				vm.workingDir = strDir
-			} else {
-				vm.workingDir = path.Join(vm.workingDir, strDir)
+			workingDir := strDir
+			if !strings.HasPrefix(strDir, "/") {
+				workingDir = path.Join(vm.workingDir, strDir)
 			}
 
+			// make sure the directory exists before switching to it
+			if _, err := os.Stat(workingDir); err != nil {
+				return nil, fmt.Errorf("'%v' was not found: '%w'", workingDir, err)
+			}
+
+			vm.workingDir = workingDir
 			return nil, nil
+		case "ls":
+			// TODO: add expected arguments like -la
+			if len(args) > 0 {
+				return nil, fmt.Errorf("'ls' takes zero arguments")
+			}
+
+			files, err := os.ReadDir(vm.workingDir)
+			if err != nil {
+				return nil, fmt.Errorf("could not read dir '%v': '%w'", vm.workingDir, err)
+			}
+
+			// TODO: hand back a list of datastructures here so that nook-script can interact
+			// with the returned value
+			found := []string{}
+			for _, file := range files {
+				found = append(found, file.Name())
+			}
+
+			return found, nil
+		case "ex":
+			if len(args) == 0 {
+				return nil, fmt.Errorf("'ex' requires a program to run")
+			}
+
+			nameValue, err := vm.Eval(args[0])
+			if err != nil {
+				return nil, fmt.Errorf("failed to get command name: '%w'", err)
+			}
+
+			// TODO: support atoms here as well
+			name, ok := nameValue.(string)
+			if !ok {
+				return nil, fmt.Errorf("command name must be a string but got '%v'", nameValue)
+			}
+			// TODO: this will break for strings in the form ":test" so we need to fix that. Once we
+			// introcue a proper value systme for the vm that will help fix this
+			name = strings.TrimPrefix(name, ":")
+
+			cmdArgs := []string{}
+			// TODO: this logic can probably be centralized somewhere but we'll just do it here for now
+			for _, arg := range args[1:] {
+				cmdArg, err := vm.Eval(arg)
+				if err != nil {
+					return nil, fmt.Errorf("failed to execute argument '%v'", arg)
+				}
+
+				// TODO: support atoms, paths, strings, and flags here
+				// That won't matter until we get a proper value system in the vm though
+				// because for now all those types are just represented by go strings
+				strArg, ok := cmdArg.(string)
+				if !ok {
+					return nil, fmt.Errorf("argument must be a string: '%v'", cmdArg)
+				}
+				strArg = strings.TrimPrefix(strArg, ":")
+
+				cmdArgs = append(cmdArgs, strArg)
+			}
+
+			cmd := exec.Command(name, cmdArgs...)
+			cmd.Dir = vm.workingDir
+
+			// we can ignore the error here since a failed call isn't a vm failue and should
+			// be represented by the value.
+			// TODO: need to set the status code for the last command
+			result, _ := cmd.CombinedOutput()
+			return string(result), nil
 		default:
-			panic("invalid operator: " + operator.Value)
+			return nil, fmt.Errorf("invalid operator: '%s'", operator.Value)
 		}
 	default:
 		return nil, fmt.Errorf("'%v' is not a valid s-expr operator", operator.Value)
