@@ -7,10 +7,10 @@ const (
 	EOF
 	Identifier
 	Comment
+	Whitespace
 
 	// Keywords and Symbols
 	Let
-	Exec
 	Plus
 	Minus
 	Divide
@@ -22,6 +22,10 @@ const (
 	Equal
 	OpenParen
 	CloseParen
+	OpenCurly
+	CloseCurly
+	OpenSquare
+	CloseSquare
 
 	// Literals
 	Int
@@ -31,6 +35,7 @@ const (
 	Path
 	Flag
 	Atom
+	Command
 )
 
 func (k Kind) String() string {
@@ -45,8 +50,6 @@ func (k Kind) String() string {
 		return "Comment"
 	case Let:
 		return "Let"
-	case Exec:
-		return "Exec"
 	case Plus:
 		return "Plus"
 	case Minus:
@@ -69,6 +72,14 @@ func (k Kind) String() string {
 		return "OpenParen"
 	case CloseParen:
 		return "CloseParen"
+	case OpenCurly:
+		return "OpenCurly"
+	case CloseCurly:
+		return "CloseCurly"
+	case OpenSquare:
+		return "OpenSquare"
+	case CloseSquare:
+		return "CloseSquare"
 	case Int:
 		return "Int"
 	case Float:
@@ -83,6 +94,8 @@ func (k Kind) String() string {
 		return "Flag"
 	case Atom:
 		return "Atom"
+	case Command:
+		return "Command"
 	default:
 		return "Uknown"
 	}

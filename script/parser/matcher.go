@@ -244,10 +244,10 @@ func matchComment(bytes []byte) *match {
 }
 
 func matchAtom(bytes []byte) *match {
-	if bytes[0] != ':' {
+	if bytes[0] != '\'' {
 		return nil
 	}
-	// atoms must be at least 2 bytes, 1 for the : and one for a valid identifier name
+	// atoms must be at least 2 bytes, 1 for the ' and one for a valid identifier name
 	if len(bytes) < 1 {
 		return nil
 	}
@@ -442,6 +442,56 @@ func matchFloat(bytes []byte) *match {
 	return nil
 }
 
+func matchCommand(bytes []byte) *match {
+	if bytes[0] != '$' {
+		return nil
+	}
+
+	for i, char := range bytes[1:] {
+		if isDecimal(char) {
+			continue
+		}
+		if isAlpha(char) {
+			continue
+		}
+		if char == '_' || char == '-' {
+			continue
+		}
+
+		return &match{
+			len:  uint(i + 1),
+			kind: token.Command,
+		}
+	}
+
+	return &match{
+		len:  uint(len(bytes)),
+		kind: token.Command,
+	}
+}
+
+func matchWhitespace(bytes []byte) *match {
+	if isWhitespace(bytes[0]) {
+		return nil
+	}
+
+	for i, char := range bytes {
+		if isWhitespace(char) {
+			continue
+		}
+
+		return &match{
+			len:  uint(i),
+			kind: token.Command,
+		}
+	}
+
+	return &match{
+		len:  uint(len(bytes)),
+		kind: token.Command,
+	}
+}
+
 func matchUnknownToken(bytes []byte) *match {
 	for i, char := range bytes {
 		if isWhitespace(char) {
@@ -456,8 +506,6 @@ func identifierKind(value string) token.Kind {
 	switch value {
 	case "let":
 		return token.Let
-	case "x":
-		return token.Exec
 	case "true":
 		return token.Bool
 	case "false":

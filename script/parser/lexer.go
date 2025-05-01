@@ -14,20 +14,24 @@ var matchers = []matcher{
 	matchFlag,
 	matchString,
 	matchComment,
+	matchCommand,
+	matchWhitespace,
 	matchIdentifier,
 }
 
 type lexer struct {
-	source    []byte
-	pos       uint
-	nextToken token.Token
+	source               []byte
+	pos                  uint
+	nextToken            token.Token
+	includeIgnoredTokens bool
 }
 
 func newLexer(source []byte) lexer {
 	lexer := lexer{
-		source:    source,
-		pos:       0,
-		nextToken: token.Token{},
+		source:               source,
+		pos:                  0,
+		nextToken:            token.Token{},
+		includeIgnoredTokens: false,
 	}
 
 	lexer.take()
@@ -35,12 +39,45 @@ func newLexer(source []byte) lexer {
 	return lexer
 }
 
+func newVerboseLexer(source []byte) lexer {
+	lexer := lexer{
+		source:               source,
+		pos:                  0,
+		nextToken:            token.Token{},
+		includeIgnoredTokens: false,
+	}
+
+	lexer.take()
+
+	return lexer
+}
+
+func (l *lexer) lex() []token.Token {
+	tokens := []token.Token{}
+	for l.peek().Kind != token.EOF {
+		tok := l.take()
+		if l.includeIgnoredTokens {
+			tokens = append(tokens, tok)
+		}
+		if tok.Kind == token.Whitespace || tok.Kind == token.Comment {
+			continue
+		}
+
+		tokens = append(tokens, tok)
+	}
+
+	return tokens
+}
+
+// TODO: we should move away from lexing like this and instead to
+// lex everything in one go, if we want performance we can just do
+// in using a go-routine.
 func (l *lexer) peek() token.Token {
 	return l.nextToken
 }
 
 func isWhitespace(char byte) bool {
-	return char == ' ' || char == '\n' || char == '\t'
+	return char == ' ' || char == '\n' || char == '\t' || char == ','
 }
 
 func (l *lexer) take() token.Token {

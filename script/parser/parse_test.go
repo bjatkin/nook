@@ -57,6 +57,16 @@ func TestParser_Parse(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:   "run command",
+			fields: fields{lexer: newLexer([]byte("($git 'status)"))},
+			want: ast.SExpr{
+				Operator: token.Token{Pos: 1, Value: "$git", Kind: token.Command},
+				Operands: []ast.Expr{
+					ast.Atom{Tok: token.Token{Pos: 6, Value: "'status", Kind: token.Atom}, Value: "'status"},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {

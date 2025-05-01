@@ -95,7 +95,7 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 				// reset the content
 				e.history = append(e.history, entry{
 					content: e.content,
-					output:  fmt.Sprint(result),
+					output:  result.String(),
 					err:     err,
 				})
 
