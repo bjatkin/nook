@@ -16,6 +16,7 @@ type Builtin struct {
 	Fn   func(args ...any) (any, error)
 }
 
+// Builtins is a slice of all the nook builtin functions.
 var Builtins = []Builtin{
 	{
 		Name: "+",

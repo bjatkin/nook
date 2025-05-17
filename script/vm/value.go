@@ -62,12 +62,10 @@ func (v *Value) Str() string {
 }
 
 func (v *Value) Int() int64 {
-	// TODO: handle errors here?
 	return v.value.(int64)
 }
 
 func (v *Value) Float() float64 {
-	// TODO: handle errors here?
 	return v.value.(float64)
 }
 
