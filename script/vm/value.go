@@ -14,6 +14,7 @@ const (
 	Path
 	Flag
 	None
+	Func
 )
 
 func (r Kind) String() string {
@@ -34,6 +35,8 @@ func (r Kind) String() string {
 		return "flag"
 	case None:
 		return "none"
+	case Func:
+		return "fn"
 	default:
 		return "untyped"
 	}
@@ -46,12 +49,16 @@ type Value struct {
 	kind  Kind
 }
 
+func (v *Value) String() string {
+	return fmt.Sprint(v.value)
+}
+
 func (v *Value) Value() any {
 	return v.value
 }
 
-func (v *Value) String() string {
-	return fmt.Sprint(v.value)
+func (v *Value) Str() string {
+	return v.value.(string)
 }
 
 func (v *Value) Int() int64 {

@@ -10,7 +10,7 @@ import (
 
 func TestParser_Parse(t *testing.T) {
 	type fields struct {
-		lexer lexer
+		lexer Lexer
 	}
 	tests := []struct {
 		name   string
@@ -21,7 +21,7 @@ func TestParser_Parse(t *testing.T) {
 			name:   "simple script",
 			fields: fields{lexer: newLexer([]byte("(+ 5 10)"))},
 			want: ast.SExpr{
-				Operator: token.Token{Pos: 1, Value: "+", Kind: token.Plus},
+				Operator: ast.Identifier{Tok: token.Token{Pos: 1, Value: "+", Kind: token.Plus}, Name: "+"},
 				Operands: []ast.Expr{
 					ast.Int{Tok: token.Token{Pos: 3, Value: "5", Kind: token.Int}, Value: 5},
 					ast.Int{Tok: token.Token{Pos: 5, Value: "10", Kind: token.Int}, Value: 10},
@@ -32,11 +32,11 @@ func TestParser_Parse(t *testing.T) {
 			name:   "assignement",
 			fields: fields{lexer: newLexer([]byte("(let a (- 8 0xFF))"))},
 			want: ast.SExpr{
-				Operator: token.Token{Pos: 1, Value: "let", Kind: token.Let},
+				Operator: ast.Let{Tok: token.Token{Pos: 1, Value: "let", Kind: token.Let}},
 				Operands: []ast.Expr{
-					ast.Identifier{Value: token.Token{Pos: 5, Value: "a", Kind: token.Identifier}},
+					ast.Identifier{Tok: token.Token{Pos: 5, Value: "a", Kind: token.Identifier}, Name: "a"},
 					ast.SExpr{
-						Operator: token.Token{Pos: 8, Value: "-", Kind: token.Minus},
+						Operator: ast.Identifier{Tok: token.Token{Pos: 8, Value: "-", Kind: token.Minus}, Name: "-"},
 						Operands: []ast.Expr{
 							ast.Int{Tok: token.Token{Pos: 10, Value: "8", Kind: token.Int}, Value: 8},
 							ast.Int{Tok: token.Token{Pos: 12, Value: "0xFF", Kind: token.Int}, Value: 0xFF},
@@ -49,7 +49,7 @@ func TestParser_Parse(t *testing.T) {
 			name:   "add floats",
 			fields: fields{lexer: newLexer([]byte("(+ 1.2 3.5 2.5)"))},
 			want: ast.SExpr{
-				Operator: token.Token{Pos: 1, Value: "+", Kind: token.Plus},
+				Operator: ast.Identifier{Tok: token.Token{Pos: 1, Value: "+", Kind: token.Plus}, Name: "+"},
 				Operands: []ast.Expr{
 					ast.Float{Tok: token.Token{Pos: 3, Value: "1.2", Kind: token.Float}, Value: 1.2},
 					ast.Float{Tok: token.Token{Pos: 7, Value: "3.5", Kind: token.Float}, Value: 3.5},
@@ -61,7 +61,7 @@ func TestParser_Parse(t *testing.T) {
 			name:   "run command",
 			fields: fields{lexer: newLexer([]byte("($git 'status)"))},
 			want: ast.SExpr{
-				Operator: token.Token{Pos: 1, Value: "$git", Kind: token.Command},
+				Operator: ast.SCommand{Tok: token.Token{Pos: 1, Value: "$git", Kind: token.Command}},
 				Operands: []ast.Expr{
 					ast.Atom{Tok: token.Token{Pos: 6, Value: "'status", Kind: token.Atom}, Value: "'status"},
 				},
@@ -75,7 +75,7 @@ func TestParser_Parse(t *testing.T) {
 				lexer: tt.fields.lexer,
 			}
 			if got := p.Parse(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Parser.Parse() = %v\nwant %v", got, tt.want)
+				t.Errorf("Parser.Parse() = %#v\nwant %#v", got, tt.want)
 			}
 		})
 	}

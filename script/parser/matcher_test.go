@@ -47,7 +47,7 @@ func Test_matchFlag(t *testing.T) {
 	}
 }
 
-func Test_matchPath(t *testing.T) {
+func Test_matchLongPath(t *testing.T) {
 	type args struct {
 		bytes []byte
 	}
@@ -65,10 +65,10 @@ func Test_matchPath(t *testing.T) {
 			},
 		},
 		{
-			name: "current dir",
-			args: args{bytes: []byte(".")},
+			name: "backwards dir",
+			args: args{bytes: []byte("../nested")},
 			want: &match{
-				len:  1,
+				len:  9,
 				kind: token.Path,
 			},
 		},
@@ -80,7 +80,7 @@ func Test_matchPath(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := matchPath(tt.args.bytes); !reflect.DeepEqual(got, tt.want) {
+			if got := matchLongPath(tt.args.bytes); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("matchPath() = %v, want %v", got, tt.want)
 			}
 		})

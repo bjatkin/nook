@@ -73,6 +73,16 @@ func matchSingleChar(bytes []byte) *match {
 		return &match{len: 1, kind: token.OpenParen}
 	case ')':
 		return &match{len: 1, kind: token.CloseParen}
+	case '{':
+		return &match{len: 1, kind: token.OpenCurly}
+	case '}':
+		return &match{len: 1, kind: token.CloseCurly}
+	case '[':
+		return &match{len: 1, kind: token.OpenSquare}
+	case ']':
+		return &match{len: 1, kind: token.CloseSquare}
+	case '.':
+		return &match{len: 1, kind: token.Path}
 	default:
 		return nil
 	}
@@ -90,12 +100,17 @@ func matchDoubleChar(bytes []byte) *match {
 		return &match{len: 2, kind: token.LessThan}
 	case "==":
 		return &match{len: 2, kind: token.Equal}
+	case "./":
+		return &match{len: 2, kind: token.Path}
+	case "..":
+		return &match{len: 2, kind: token.Path}
 	default:
 		return nil
 	}
 }
 
-func matchPath(bytes []byte) *match {
+// matchLongPath matches only paths that start with either '/' or './' or '../'
+func matchLongPath(bytes []byte) *match {
 	if !matchPathPrefix(bytes) {
 		return nil
 	}
@@ -121,6 +136,13 @@ func matchPath(bytes []byte) *match {
 			continue
 		}
 
+		// a single slash is not a valid path. It must be followed by at least one other character
+		// TODO: really I should be matching path's based of individual sections since an empty
+		// directory is probably never valid
+		if i == 1 && bytes[0] == '/' {
+			return nil
+		}
+
 		return &match{len: uint(i), kind: token.Path}
 	}
 
@@ -132,19 +154,16 @@ func matchPathPrefix(bytes []byte) bool {
 		return true
 	}
 
-	if len(bytes) > 0 && bytes[0] == '.' {
-		return true
-	}
-
 	if len(bytes) >= 2 &&
 		bytes[0] == '.' &&
 		bytes[1] == '/' {
 		return true
 	}
 
-	if len(bytes) >= 2 &&
+	if len(bytes) >= 3 &&
 		bytes[0] == '.' &&
-		bytes[1] == '.' {
+		bytes[1] == '.' &&
+		bytes[2] == '/' {
 		return true
 	}
 
@@ -470,8 +489,12 @@ func matchCommand(bytes []byte) *match {
 	}
 }
 
+func isWhitespace(char byte) bool {
+	return char == ' ' || char == '\n' || char == '\t' || char == ','
+}
+
 func matchWhitespace(bytes []byte) *match {
-	if isWhitespace(bytes[0]) {
+	if !isWhitespace(bytes[0]) {
 		return nil
 	}
 
@@ -482,13 +505,13 @@ func matchWhitespace(bytes []byte) *match {
 
 		return &match{
 			len:  uint(i),
-			kind: token.Command,
+			kind: token.Whitespace,
 		}
 	}
 
 	return &match{
 		len:  uint(len(bytes)),
-		kind: token.Command,
+		kind: token.Whitespace,
 	}
 }
 
@@ -510,6 +533,22 @@ func identifierKind(value string) token.Kind {
 		return token.Bool
 	case "false":
 		return token.Bool
+	case "int":
+		return token.IntType
+	case "float":
+		return token.FloatType
+	case "bool":
+		return token.BoolType
+	case "str":
+		return token.StringType
+	case "path":
+		return token.PathType
+	case "flag":
+		return token.FlagType
+	case "atom":
+		return token.AtomType
+	case "command":
+		return token.CommandType
 	default:
 		return token.Identifier
 	}

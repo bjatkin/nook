@@ -27,6 +27,21 @@ const (
 	OpenSquare
 	CloseSquare
 
+	// Type Keywords
+	IntType
+	FloatType
+	BoolType
+	StringType
+	PathType
+	FlagType
+	AtomType
+	CommandType
+	DictType
+	TupleType
+	SliceType
+	ArrayType
+	NoneType
+
 	// Literals
 	Int
 	Float
@@ -80,6 +95,32 @@ func (k Kind) String() string {
 		return "OpenSquare"
 	case CloseSquare:
 		return "CloseSquare"
+	case IntType:
+		return "IntType"
+	case FloatType:
+		return "FloatType"
+	case BoolType:
+		return "BoolType"
+	case StringType:
+		return "StringType"
+	case PathType:
+		return "PathType"
+	case FlagType:
+		return "FlagType"
+	case AtomType:
+		return "AtomType"
+	case CommandType:
+		return "CommandType"
+	case DictType:
+		return "DictType"
+	case TupleType:
+		return "TupleType"
+	case SliceType:
+		return "SliceType"
+	case ArrayType:
+		return "ArrayType"
+	case NoneType:
+		return "NoneType"
 	case Int:
 		return "Int"
 	case Float:

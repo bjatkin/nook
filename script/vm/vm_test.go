@@ -26,30 +26,26 @@ func TestVM_Eval(t *testing.T) {
 			name:   "add integers",
 			fields: fields{},
 			args: args{expr: ast.SExpr{
-				Operator: token.Token{Pos: 1, Value: "+", Kind: token.Plus},
+				Operator: ast.Identifier{Tok: token.Token{Pos: 1, Value: "+", Kind: token.Plus}, Name: "+"},
 				Operands: []ast.Expr{
 					ast.Int{Tok: token.Token{Pos: 3, Value: "5", Kind: token.Int}, Value: 5},
 					ast.Int{Tok: token.Token{Pos: 5, Value: "3", Kind: token.Int}, Value: 3},
-					ast.Int{Tok: token.Token{Pos: 7, Value: "11", Kind: token.Int}, Value: 11},
-					ast.Int{Tok: token.Token{Pos: 10, Value: "-3", Kind: token.Int}, Value: -3},
 				},
 			}},
-			want:    int64(16),
+			want:    Value{value: int64(8), kind: Int},
 			wantErr: false,
 		},
 		{
 			name:   "add floats",
 			fields: fields{},
 			args: args{expr: ast.SExpr{
-				Operator: token.Token{Pos: 1, Value: "+", Kind: token.Plus},
+				Operator: ast.Identifier{Tok: token.Token{Pos: 1, Value: "+", Kind: token.Plus}, Name: "+"},
 				Operands: []ast.Expr{
 					ast.Float{Tok: token.Token{Pos: 3, Value: "1.43", Kind: token.Float}, Value: 1.43},
 					ast.Float{Tok: token.Token{Pos: 5, Value: "9.35", Kind: token.Float}, Value: 9.35},
-					ast.Float{Tok: token.Token{Pos: 7, Value: "6.31", Kind: token.Float}, Value: 6.31},
-					ast.Float{Tok: token.Token{Pos: 10, Value: "-3.40", Kind: token.Float}, Value: -3.40},
 				},
 			}},
-			want:    float64(13.69),
+			want:    Value{value: 10.78, kind: Float},
 			wantErr: false,
 		},
 	}
@@ -64,7 +60,7 @@ func TestVM_Eval(t *testing.T) {
 			}
 
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("VM.Eval() = %v(%T), want %v(%T)", got, got, tt.want, tt.want)
+				t.Errorf("VM.Eval() = %#v(%T), want %#v(%T)", got, got, tt.want, tt.want)
 			}
 		})
 	}

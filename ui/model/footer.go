@@ -1,10 +1,11 @@
 package model
 
 import (
-	"github.com/bjatkin/nook/colors"
-	"github.com/bjatkin/nook/layout"
+	"github.com/bjatkin/nook/ui/colors"
+	"github.com/bjatkin/nook/ui/layout"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type footer struct {
@@ -23,16 +24,16 @@ func (f footer) View() string {
 
 	mode := layout.Text{
 		Text:  layout.Pad(3, 3, f.mode),
-		Style: colors.Primary,
+		Style: lipgloss.NewStyle().Background(colors.Blue3).Foreground(colors.Blue1),
 	}
-	left := layout.NewHContainer(f.width/2, layout.LeftToRight, colors.Background1)
+	left := layout.NewHContainer(f.width/2, layout.LeftToRight, lipgloss.NewStyle().Background(colors.Blue1).Foreground(colors.Blue1))
 	left.Content = append(left.Content, mode)
 
 	version := layout.Text{
 		Text:  " v0.0.1 ",
-		Style: colors.Primary,
+		Style: lipgloss.NewStyle().Background(colors.Green3).Foreground(colors.Green1),
 	}
-	right := layout.NewHContainer((f.width/2)-1, layout.RightToLeft, colors.Background1)
+	right := layout.NewHContainer((f.width/2)-1, layout.RightToLeft, lipgloss.NewStyle().Background(colors.Blue1).Foreground(colors.Blue1))
 	right.Content = append(right.Content, version)
 
 	// TODO: seems like weird style issues pop up when you use the full terminal width

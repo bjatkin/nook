@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bjatkin/nook/script/checker"
 	"github.com/bjatkin/nook/script/vm"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -12,6 +13,7 @@ type Model struct {
 	tWidth, tHeight int
 	header          header
 	editor          editor
+	showFooter      bool
 	footer          footer
 }
 
@@ -36,11 +38,12 @@ func NewModel() (Model, error) {
 	return Model{
 		header: header,
 		editor: editor{
-			content: "(",
-			vm:      vm.NewVM(pwd),
+			content:     "(",
+			vm:          vm.NewVM(pwd),
+			typeChecker: checker.NewChecker(),
 		},
 		footer: footer{
-			mode: "NORMAL",
+			mode: "INSERT",
 		},
 	}, nil
 }
@@ -52,6 +55,7 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if size, ok := msg.(tea.WindowSizeMsg); ok {
 		m.tHeight = size.Height
+		m.showFooter = m.tHeight > 10
 		m.tWidth = size.Width
 
 		m.header.width = m.tWidth
@@ -75,5 +79,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	header := m.header.View()
 	editor := m.editor.View()
-	return header + "\n" + editor + "\n" + m.footer.View()
+	if !m.showFooter {
+		return header + "\n" + editor
+	}
+
+	footer := m.footer.View()
+	return header + "\n" + editor + "\n" + footer
 }

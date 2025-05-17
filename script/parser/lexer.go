@@ -10,7 +10,7 @@ var matchers = []matcher{
 	matchFloat,
 	matchInt,
 	matchAtom,
-	matchPath,
+	matchLongPath,
 	matchFlag,
 	matchString,
 	matchComment,
@@ -19,80 +19,55 @@ var matchers = []matcher{
 	matchIdentifier,
 }
 
-type lexer struct {
+type Lexer struct {
 	source               []byte
 	pos                  uint
-	nextToken            token.Token
 	includeIgnoredTokens bool
 }
 
-func newLexer(source []byte) lexer {
-	lexer := lexer{
+func newLexer(source []byte) Lexer {
+	lexer := Lexer{
 		source:               source,
 		pos:                  0,
-		nextToken:            token.Token{},
 		includeIgnoredTokens: false,
 	}
-
-	lexer.take()
 
 	return lexer
 }
 
-func newVerboseLexer(source []byte) lexer {
-	lexer := lexer{
+func NewVerboseLexer(source []byte) Lexer {
+	lexer := Lexer{
 		source:               source,
 		pos:                  0,
-		nextToken:            token.Token{},
-		includeIgnoredTokens: false,
+		includeIgnoredTokens: true,
 	}
-
-	lexer.take()
 
 	return lexer
 }
 
-func (l *lexer) lex() []token.Token {
+func (l *Lexer) Lex() []token.Token {
 	tokens := []token.Token{}
-	for l.peek().Kind != token.EOF {
-		tok := l.take()
-		if l.includeIgnoredTokens {
+	tok := l.next()
+	for tok.Kind != token.EOF {
+		switch {
+		case l.includeIgnoredTokens:
+			tokens = append(tokens, tok)
+		case tok.Kind != token.Whitespace && tok.Kind != token.Comment:
 			tokens = append(tokens, tok)
 		}
-		if tok.Kind == token.Whitespace || tok.Kind == token.Comment {
-			continue
-		}
 
-		tokens = append(tokens, tok)
+		tok = l.next()
 	}
 
 	return tokens
 }
 
-// TODO: we should move away from lexing like this and instead to
-// lex everything in one go, if we want performance we can just do
-// in using a go-routine.
-func (l *lexer) peek() token.Token {
-	return l.nextToken
-}
-
-func isWhitespace(char byte) bool {
-	return char == ' ' || char == '\n' || char == '\t' || char == ','
-}
-
-func (l *lexer) take() token.Token {
-	currentToken := l.nextToken
-
-	for int(l.pos) < len(l.source) && isWhitespace(l.source[l.pos]) {
-		l.pos++
-	}
-
+func (l *Lexer) next() token.Token {
 	if int(l.pos) >= len(l.source) {
-		l.nextToken = token.Token{
+		return token.Token{
 			Pos:  l.pos,
 			Kind: token.EOF,
 		}
-		return currentToken
 	}
 
 	var bestMatch *match
@@ -115,11 +90,9 @@ func (l *lexer) take() token.Token {
 
 	start := l.pos
 	l.pos += bestMatch.len
-	l.nextToken = token.Token{
+	return token.Token{
 		Pos:   start,
 		Value: string(l.source[start:l.pos]),
 		Kind:  bestMatch.kind,
 	}
-
-	return currentToken
 }

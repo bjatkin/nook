@@ -5,9 +5,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/bjatkin/nook/colors"
-	"github.com/bjatkin/nook/layout"
+	"github.com/bjatkin/nook/ui/colors"
+	"github.com/bjatkin/nook/ui/layout"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type header struct {
@@ -52,7 +53,8 @@ func (h header) View() string {
 		return ""
 	}
 
-	cont := layout.NewHContainer(h.width-1, layout.LeftToRight, colors.Background1)
+	// cont := layout.NewHContainer(h.width-1, layout.LeftToRight, colors.Background1)
+	cont := layout.NewHContainer(h.width-1, layout.LeftToRight, lipgloss.NewStyle().Background(colors.Blue1).Foreground(colors.Blue1))
 
 	dir := strings.TrimPrefix(h.workingDir, h.homeDir+"/")
 	dir = layout.Pad(3, 3, dir)
@@ -61,7 +63,7 @@ func (h header) View() string {
 		cont.Content,
 		layout.Text{
 			Text:  dir,
-			Style: colors.Primary,
+			Style: lipgloss.NewStyle().Background(colors.Blue3).Foreground(colors.Blue1).Bold(true),
 		},
 	)
 
@@ -69,9 +71,9 @@ func (h header) View() string {
 		return cont.String()
 	}
 
-	style := colors.Secondary
+	style := lipgloss.NewStyle().Background(colors.Green3).Foreground(colors.Green1)
 	if h.gitIsDirty {
-		style = colors.Third
+		style = lipgloss.NewStyle().Background(colors.Yellow3).Foreground(colors.Yellow1)
 	}
 
 	cont.Content = append(
