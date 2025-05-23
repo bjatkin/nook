@@ -1,4 +1,6 @@
-# Nook Script Reference
+# Nook Script Examples
+
+Originaly this was the spec for nook script but it's evolved to be more of a worspace for ideas.
 
 Bellow are examples of nook script.
 They should be used to guide the developement of the compiler and VM.

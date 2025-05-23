@@ -49,6 +49,10 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 	e.debug = append(e.debug, fmt.Sprintf("indent '%d' nesting '%d'", indent, nesting))
 
 	switch msg := msg.(type) {
+	case resizeContent:
+		e.width = msg.width
+		e.height = msg.height
+		return e, nil
 	case debugInfoMsg:
 		e.debug = append(e.debug, fmt.Sprintf("debug msg: '%s'", string(msg)))
 	case errorPingMsg:
@@ -154,7 +158,8 @@ func (e editor) Update(msg tea.Msg) (editor, tea.Cmd) {
 
 				e.content = "("
 				e.copyHistoryIndex = len(e.history)
-				e.debug = append(e.debug, fmt.Sprint("pwd: ", e.vm.WorkingDir()))
+				dir, _ := os.Getwd()
+				e.debug = append(e.debug, fmt.Sprint("pwd: ", dir))
 
 				// update the working dir in case the VM updates the working dir
 				pwd, err := os.Getwd()

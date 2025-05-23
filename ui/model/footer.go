@@ -13,8 +13,15 @@ type footer struct {
 	width int
 }
 
-func (f footer) Update(msg tea.Msg) footer {
-	return f
+func (f footer) Update(msg tea.Msg) (footer, tea.Cmd) {
+	switch msg := msg.(type) {
+	case resizeContent:
+		f.width = msg.width
+	case changeMode:
+		f.mode = string(msg)
+	}
+
+	return f, nil
 }
 
 func (f footer) View() string {

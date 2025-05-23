@@ -83,6 +83,14 @@ func matchSingleChar(bytes []byte) *match {
 		return &match{len: 1, kind: token.CloseSquare}
 	case '.':
 		return &match{len: 1, kind: token.Path}
+	case ' ':
+		return &match{len: 1, kind: token.Whitespace}
+	case '\n':
+		return &match{len: 1, kind: token.Whitespace}
+	case '\t':
+		return &match{len: 1, kind: token.Whitespace}
+	case ',':
+		return &match{len: 1, kind: token.Whitespace}
 	default:
 		return nil
 	}
@@ -234,6 +242,9 @@ func matchIdentifier(bytes []byte) *match {
 			continue
 		}
 		if i > 0 && isDecimal(char) {
+			continue
+		}
+		if i > 0 && char == '_' {
 			continue
 		}
 		if i > 0 {
@@ -491,28 +502,6 @@ func matchCommand(bytes []byte) *match {
 
 func isWhitespace(char byte) bool {
 	return char == ' ' || char == '\n' || char == '\t' || char == ','
-}
-
-func matchWhitespace(bytes []byte) *match {
-	if !isWhitespace(bytes[0]) {
-		return nil
-	}
-
-	for i, char := range bytes {
-		if isWhitespace(char) {
-			continue
-		}
-
-		return &match{
-			len:  uint(i),
-			kind: token.Whitespace,
-		}
-	}
-
-	return &match{
-		len:  uint(len(bytes)),
-		kind: token.Whitespace,
-	}
 }
 
 func matchUnknownToken(bytes []byte) *match {

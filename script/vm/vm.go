@@ -29,21 +29,15 @@ func (s *scope) setIdent(ident string, value Value) {
 }
 
 type VM struct {
-	workingDir string
-	scope      *scope
+	scope *scope
 }
 
-func NewVM(workingDir string) VM {
-	return VM{
-		workingDir: workingDir,
+func NewVM() *VM {
+	return &VM{
 		scope: &scope{
 			idents: make(map[string]Value),
 		},
 	}
-}
-
-func (vm *VM) WorkingDir() string {
-	return vm.workingDir
 }
 
 // TODO: send back editor events?

@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -20,10 +21,23 @@ type header struct {
 }
 
 func (h header) Update(msg tea.Msg) (header, tea.Cmd) {
-	if changeDir, ok := msg.(changeDirMsg); ok {
-		h.workingDir = string(changeDir)
+	if msg, ok := msg.(resizeContent); ok {
+		h.width = msg.width
+		return h, nil
+	}
+
+	if _, ok := msg.(runResult); ok {
+		dir, err := os.Getwd()
+		if err != nil {
+			return h, nil
+		}
+
+		if dir == h.workingDir {
+			return h, nil
+		}
+
+		h.workingDir = dir
 		cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-		cmd.Dir = string(changeDir)
 		branch, err := cmd.Output()
 		if err != nil {
 			// just treat this directory as if it's not a git repo
@@ -33,7 +47,6 @@ func (h header) Update(msg tea.Msg) (header, tea.Cmd) {
 
 		h.gitBranch = strings.Trim(string(branch), "\n")
 		cmd = exec.Command("git", "status", "--porcelain")
-		cmd.Dir = string(changeDir)
 		isClean, err := cmd.Output()
 		if err != nil {
 			return h, nil
@@ -54,7 +67,7 @@ func (h header) View() string {
 	}
 
 	// cont := layout.NewHContainer(h.width-1, layout.LeftToRight, colors.Background1)
-	cont := layout.NewHContainer(h.width-1, layout.LeftToRight, lipgloss.NewStyle().Background(colors.Blue1).Foreground(colors.Blue1))
+	cont := layout.NewHContainer(h.width, layout.LeftToRight, lipgloss.NewStyle().Background(colors.Blue1).Foreground(colors.Blue1))
 
 	dir := strings.TrimPrefix(h.workingDir, h.homeDir+"/")
 	dir = layout.Pad(3, 3, dir)

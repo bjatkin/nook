@@ -1,5 +1,7 @@
 package token
 
+import "fmt"
+
 type Kind int64
 
 const (
@@ -137,8 +139,10 @@ func (k Kind) String() string {
 		return "Atom"
 	case Command:
 		return "Command"
+	case Whitespace:
+		return "Whitespace"
 	default:
-		return "Uknown"
+		panic(fmt.Sprintf("invalid kind %d", k))
 	}
 }
 
