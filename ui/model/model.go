@@ -2,12 +2,13 @@ package model
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/bjatkin/nook/script/checker"
 	"github.com/bjatkin/nook/script/vm"
+	"github.com/bjatkin/nook/ui/colors"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type resizeContent struct {
@@ -27,22 +28,10 @@ type Model struct {
 }
 
 func NewModel() (Model, error) {
-	pwd, err := os.Getwd()
+	header, err := newHeader()
 	if err != nil {
-		return Model{}, fmt.Errorf("failed to get working directory: %w", err)
+		return Model{}, fmt.Errorf("failed to build header: %w", err)
 	}
-
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return Model{}, fmt.Errorf("failed to get users home directory: %w", err)
-	}
-
-	// TODO: this is not the right way to do this, clean this up
-	header := header{
-		workingDir: pwd,
-		homeDir:    home,
-	}
-	header, _ = header.Update(changeDirMsg(pwd))
 
 	return Model{
 		header: header,
@@ -113,24 +102,31 @@ func (m Model) View() string {
 	switch {
 	case showHistory && m.showFooter:
 		view := header + "\n" + editor + "\n" + history + "\n"
-		pad := buildPad(view, m.tHeight)
-		return view + pad + footer
+		pad := buildPad(view, m.tWidth, m.tHeight)
+		return view + pad + "\n" + footer
 	case showHistory:
 		return header + "\n" + editor + "\n" + history
 	case m.showFooter:
 		view := header + "\n" + editor + "\n"
-		pad := buildPad(view, m.tHeight)
-		return view + pad + footer
+		pad := buildPad(view, m.tWidth, m.tHeight)
+		return view + pad + "\n" + footer
 	default:
 		return header + "\n" + editor
 	}
 }
 
-func buildPad(view string, height int) string {
+func buildPad(view string, width, height int) string {
 	lines := len(strings.Split(view, "\n"))
 	if lines > height {
 		return ""
 	}
 
-	return strings.Repeat("\n", height-lines)
+	padLine := strings.Repeat(" ", width)
+	paddingLines := []string{}
+	for i := 0; i < height-lines; i++ {
+		paddingLines = append(paddingLines, padLine)
+	}
+
+	padding := strings.Join(paddingLines, "\n")
+	return lipgloss.NewStyle().Background(colors.Gray1).Render(padding)
 }

@@ -87,7 +87,11 @@ func renderOutput(width int, output string) string {
 
 	for _, line := range strings.Split(output, "\n") {
 		pad := width - len(line) + 4
-		padding := lineStyle.Render(strings.Repeat(" ", pad))
+		padding := ""
+		if pad > 0 {
+			padding = lineStyle.Render(strings.Repeat(" ", pad))
+		}
+
 		view = append(view, gutterStyle.Render("  | ")+lineStyle.Render(line)+padding)
 	}
 	return strings.Join(view, "\n")

@@ -20,46 +20,96 @@ type header struct {
 	width      int
 }
 
-func (h header) Update(msg tea.Msg) (header, tea.Cmd) {
-	if msg, ok := msg.(resizeContent); ok {
-		h.width = msg.width
-		return h, nil
+func newHeader() (header, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return header{}, fmt.Errorf("failed to get working directory: %w", err)
 	}
 
-	if _, ok := msg.(runResult); ok {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return header{}, fmt.Errorf("failed to get users home directory: %w", err)
+	}
+
+	branch, isDirty := getGitBranch(dir)
+	return header{
+		homeDir:    home,
+		workingDir: dir,
+		gitBranch:  branch,
+		gitIsDirty: isDirty,
+	}, nil
+}
+
+func (h header) Update(msg tea.Msg) (header, tea.Cmd) {
+	switch msg := msg.(type) {
+	case resizeContent:
+		h.width = msg.width
+	case runResult:
 		dir, err := os.Getwd()
 		if err != nil {
 			return h, nil
 		}
 
-		if dir == h.workingDir {
+		if h.workingDir == dir {
 			return h, nil
 		}
-
 		h.workingDir = dir
-		cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-		branch, err := cmd.Output()
-		if err != nil {
-			// just treat this directory as if it's not a git repo
-			h.gitBranch = ""
-			return h, nil
-		}
 
-		h.gitBranch = strings.Trim(string(branch), "\n")
-		cmd = exec.Command("git", "status", "--porcelain")
-		isClean, err := cmd.Output()
-		if err != nil {
-			return h, nil
-		}
-
-		h.gitIsDirty = len(isClean) > 0
-		return h, func() tea.Msg {
-			return debugInfoMsg(fmt.Sprintf("git status '%s', '%v'", h.gitBranch, string(isClean)))
-		}
+		branch, isDirty := getGitBranch(h.workingDir)
+		h.gitBranch = branch
+		h.gitIsDirty = isDirty
+		return h, nil
 	}
 
 	return h, nil
 }
+
+func getGitBranch(dir string) (string, bool) {
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	branch, err := cmd.Output()
+	if err != nil {
+		return "", true
+	}
+
+	gitBranch := strings.Trim(string(branch), "\n")
+	cmd = exec.Command("git", "status", "--porcelain")
+	isClean, err := cmd.Output()
+	if err != nil {
+		return gitBranch, false
+	}
+
+	gitIsDirty := len(isClean) > 0
+	return gitBranch, gitIsDirty
+}
+
+// func (h *header) updateWorkingDir() {
+
+// 	panic("here")
+// 	if dir == h.workingDir {
+// 		// nothing to do
+// 		return
+// 	}
+
+// 	h.workingDir = dir
+// 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+// 	branch, err := cmd.Output()
+// 	if err != nil {
+// 		panic("failed to get branch")
+// 		// just treat this directory as if it's not a git repo
+// 		h.gitBranch = ""
+// 		return
+// 	}
+
+// 	h.gitBranch = strings.Trim(string(branch), "\n")
+// 	cmd = exec.Command("git", "status", "--porcelain")
+// 	isClean, err := cmd.Output()
+// 	if err != nil {
+// 		panic("failed to check is clean")
+// 		return
+// 	}
+
+// 	h.gitIsDirty = len(isClean) > 0
+// }
 
 func (h header) View() string {
 	if h.width == 0 {
