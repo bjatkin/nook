@@ -92,7 +92,7 @@ func renderOutput(width int, output string) string {
 			padding = lineStyle.Render(strings.Repeat(" ", pad))
 		}
 
-		view = append(view, gutterStyle.Render("  | ")+lineStyle.Render(line)+padding)
+		view = append(view, gutterStyle.Render("  │ ")+lineStyle.Render(line)+padding)
 	}
 	return strings.Join(view, "\n")
 }

@@ -131,7 +131,9 @@ func (a activeCell) runCode(code []byte) (string, []error) {
 
 	result, err := a.vm.Eval(ast)
 	if err != nil {
-		return "", []error{err}
+		// This is a runtime error, so it should be returned as the
+		// result since the error is only for "compile time" errors
+		return err.Error(), nil
 	}
 
 	return result.String(), nil

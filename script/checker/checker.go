@@ -64,6 +64,8 @@ func (c *Checker) Infer(expr ast.Expr) ast.TypeExpr {
 		return &ast.BoolType{}
 	case *ast.Command:
 		return &ast.CommandType{}
+	case *ast.Nil:
+		return &ast.NoneType{}
 	case *ast.Func:
 		c.openScope()
 		bodyType := c.Infer(expr.Body)
@@ -167,6 +169,8 @@ func (c *Checker) checkBuiltinCall(builtin *symbol.BuiltinEntry, args []ast.Type
 		argTypes := []string{}
 		for i := range args {
 			switch args[i].(type) {
+			case *ast.NoneType:
+				argTypes = append(argTypes, "none")
 			case *ast.IntType:
 				argTypes = append(argTypes, "int")
 			case *ast.FloatType:

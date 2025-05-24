@@ -13,6 +13,7 @@ const (
 
 	// Keywords and Symbols
 	Let
+	Nil
 	Plus
 	Minus
 	Divide
@@ -67,6 +68,8 @@ func (k Kind) String() string {
 		return "Comment"
 	case Let:
 		return "Let"
+	case Nil:
+		return "Nil"
 	case Plus:
 		return "Plus"
 	case Minus:

@@ -133,6 +133,10 @@ func (p *Parser) parse() ast.Expr {
 
 		return &ast.Float{Tok: tok, Value: f}
 
+	case token.Nil:
+		tok := p.take()
+		return &ast.Nil{Tok: tok}
+
 	case token.Bool:
 		tok := p.take()
 		value := false

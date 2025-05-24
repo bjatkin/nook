@@ -23,6 +23,12 @@ type Float struct {
 	Value float64
 }
 
+// Nil is a literal with the value none
+type Nil struct {
+	Expr
+	Tok token.Token
+}
+
 // String is a string literal (e.g. "hello there")
 type String struct {
 	Expr

@@ -98,6 +98,8 @@ func (vm *VM) Eval(expr ast.Expr) (Value, error) {
 		return Value{value: expr.Value, kind: Flag}, nil
 	case *ast.Path:
 		return Value{value: expr.Value, kind: Path}, nil
+	case *ast.Nil:
+		return Value{value: nil, kind: None}, nil
 	case *ast.Identifier:
 		val, ok := vm.scope.lookupIdent(expr.Name, nil)
 		if !ok {

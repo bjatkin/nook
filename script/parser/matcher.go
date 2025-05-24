@@ -538,6 +538,10 @@ func identifierKind(value string) token.Kind {
 		return token.AtomType
 	case "command":
 		return token.CommandType
+	case "none":
+		return token.NoneType
+	case "nil":
+		return token.Nil
 	default:
 		return token.Identifier
 	}
