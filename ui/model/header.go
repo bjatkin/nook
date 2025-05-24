@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/bjatkin/nook/ui/colors"
-	"github.com/bjatkin/nook/ui/layout"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -39,6 +38,54 @@ func newHeader() (header, error) {
 		gitIsDirty: isDirty,
 	}, nil
 }
+
+/*
+func (h header) Shape() (int, int) {
+	return h.width, 1
+}
+
+func (h header) Render(width, height int) []string {
+	if width == 0 || height == 0 {
+		return nil
+	}
+
+	dir := strings.TrimPrefix(h.workingDir, h.homeDir+"/")
+	dir = layout.Pad(3, 3, dir)
+	dirStyle := lipgloss.NewStyle().Background(colors.Blue3).Foreground(colors.Blue1).Bold(true)
+
+	gitStyle := lipgloss.NewStyle().Background(colors.Blue3).Foreground(colors.Blue1).Bold(true)
+	gitBranch := h.gitBranch
+	if gitBranch != "" {
+		gitBranch = layout.Pad(1, 1, h.gitBranch)
+		gitStyle = lipgloss.NewStyle().Background(colors.Green3).Foreground(colors.Green1)
+	}
+
+	if h.gitIsDirty {
+		gitStyle = lipgloss.NewStyle().Background(colors.Yellow3).Foreground(colors.Yellow1)
+	}
+
+	backgroundStyle := lipgloss.NewStyle().Background(colors.Blue1)
+	statusDiv := &layout.Div_{
+		Direction: layout.LeftToRight_,
+		Contents: []layout.Content_{
+			layout.NewText(dir, dirStyle),
+			layout.NewText(gitBranch, gitStyle),
+			layout.NewText(strings.Repeat(" ", h.width), backgroundStyle),
+		},
+		Width:  width,
+		Height: 1,
+	}
+
+	content := layout.Div_{
+		Direction: layout.TopToBottom_,
+		Contents:  []layout.Content_{statusDiv},
+		Width:     width,
+		Height:    height,
+	}
+
+	return content.Render(width, height)
+}
+*/
 
 func (h header) Update(msg tea.Msg) (header, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -82,70 +129,27 @@ func getGitBranch(dir string) (string, bool) {
 	return gitBranch, gitIsDirty
 }
 
-// func (h *header) updateWorkingDir() {
-
-// 	panic("here")
-// 	if dir == h.workingDir {
-// 		// nothing to do
-// 		return
-// 	}
-
-// 	h.workingDir = dir
-// 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
-// 	branch, err := cmd.Output()
-// 	if err != nil {
-// 		panic("failed to get branch")
-// 		// just treat this directory as if it's not a git repo
-// 		h.gitBranch = ""
-// 		return
-// 	}
-
-// 	h.gitBranch = strings.Trim(string(branch), "\n")
-// 	cmd = exec.Command("git", "status", "--porcelain")
-// 	isClean, err := cmd.Output()
-// 	if err != nil {
-// 		panic("failed to check is clean")
-// 		return
-// 	}
-
-// 	h.gitIsDirty = len(isClean) > 0
-// }
-
 func (h header) View() string {
 	if h.width == 0 {
 		return ""
 	}
 
-	// cont := layout.NewHContainer(h.width-1, layout.LeftToRight, colors.Background1)
-	cont := layout.NewHContainer(h.width, layout.LeftToRight, lipgloss.NewStyle().Background(colors.Blue1).Foreground(colors.Blue1))
-
 	dir := strings.TrimPrefix(h.workingDir, h.homeDir+"/")
-	dir = layout.Pad(3, 3, dir)
+	dir = "   " + dir + "   "
+	dirStyle := lipgloss.NewStyle().Background(colors.Blue3).Foreground(colors.Blue1).Bold(true)
 
-	cont.Content = append(
-		cont.Content,
-		layout.Text{
-			Text:  dir,
-			Style: lipgloss.NewStyle().Background(colors.Blue3).Foreground(colors.Blue1).Bold(true),
-		},
-	)
-
+	pad := strings.Repeat(" ", h.width-len(dir))
+	padStyle := lipgloss.NewStyle().Background(colors.Blue1)
 	if h.gitBranch == "" {
-		return cont.String()
+		return dirStyle.Render(dir) + padStyle.Render(pad)
 	}
 
-	style := lipgloss.NewStyle().Background(colors.Green3).Foreground(colors.Green1)
+	gitStyle := lipgloss.NewStyle().Background(colors.Green3).Foreground(colors.Green1)
 	if h.gitIsDirty {
-		style = lipgloss.NewStyle().Background(colors.Yellow3).Foreground(colors.Yellow1)
+		gitStyle = lipgloss.NewStyle().Background(colors.Yellow3).Foreground(colors.Yellow1)
 	}
 
-	cont.Content = append(
-		cont.Content,
-		layout.Text{
-			Text:  layout.Pad(1, 1, h.gitBranch),
-			Style: style,
-		},
-	)
-
-	return cont.String()
+	gitBranch := " " + h.gitBranch + " "
+	pad = strings.Repeat(" ", h.width-len(dir)-len(gitBranch))
+	return dirStyle.Render(dir) + gitStyle.Render(gitBranch) + padStyle.Render(pad)
 }

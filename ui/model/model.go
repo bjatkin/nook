@@ -17,11 +17,10 @@ type resizeContent struct {
 }
 
 type Model struct {
-	tWidth, tHeight int
-	header          header
-	editor          editor
-	showFooter      bool
-	footer          footer
+	width, height int
+	header        header
+	showFooter    bool
+	footer        footer
 
 	history    history
 	activeCell activeCell
@@ -35,15 +34,9 @@ func NewModel() (Model, error) {
 
 	return Model{
 		header: header,
-		editor: editor{
-			content:     "(",
-			vm:          *vm.NewVM(),
-			typeChecker: checker.NewChecker(),
-		},
 		footer: footer{
 			mode: "INSERT",
 		},
-
 		history: history{},
 		activeCell: activeCell{
 			editor: codeEditor{
@@ -63,11 +56,11 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if size, ok := msg.(tea.WindowSizeMsg); ok {
-		m.tHeight = size.Height
-		m.tWidth = size.Width
+		m.width = size.Width
+		m.height = size.Height
 
 		m.showFooter = false
-		if m.tHeight > 10 {
+		if m.height > 20 {
 			m.showFooter = true
 		}
 
@@ -102,17 +95,37 @@ func (m Model) View() string {
 	switch {
 	case showHistory && m.showFooter:
 		view := header + "\n" + editor + "\n" + history + "\n"
-		pad := buildPad(view, m.tWidth, m.tHeight)
-		return view + pad + "\n" + footer
+		view = setHeight(view, m.width, m.height-1)
+		return view + "\n" + footer
 	case showHistory:
-		return header + "\n" + editor + "\n" + history
+		view := header + "\n" + editor + "\n" + history + "\n"
+		return setHeight(view, m.width, m.height)
 	case m.showFooter:
 		view := header + "\n" + editor + "\n"
-		pad := buildPad(view, m.tWidth, m.tHeight)
-		return view + pad + "\n" + footer
+		view = setHeight(view, m.width, m.height-1)
+		return view + "\n" + footer
 	default:
-		return header + "\n" + editor
+		view := header + "\n" + editor + "\n"
+		return setHeight(view, m.width, m.height)
 	}
+}
+
+func setHeight(view string, width, height int) string {
+	lines := strings.Split(view, "\n")
+	lineCount := len(lines)
+	if lineCount >= height {
+		return strings.Join(lines[:height], "\n")
+	}
+
+	padLine := strings.Repeat(" ", width)
+	paddingLines := []string{}
+	for i := 0; i < height-lineCount; i++ {
+		paddingLines = append(paddingLines, padLine)
+	}
+
+	padding := strings.Join(paddingLines, "\n")
+	padding = lipgloss.NewStyle().Background(colors.Gray1).Render(padding)
+	return view + padding
 }
 
 func buildPad(view string, width, height int) string {
