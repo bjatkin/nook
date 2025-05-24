@@ -141,7 +141,7 @@ func (a activeCell) View() string {
 	editor := ""
 	background := colors.Black
 	if a.running {
-		background = colors.Blue1
+		background = colors.Green2
 	}
 
 	editor = a.editor.View(background)

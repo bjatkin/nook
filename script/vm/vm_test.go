@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/bjatkin/nook/script/ast"
+	"github.com/bjatkin/nook/script/builtin"
 	"github.com/bjatkin/nook/script/token"
 )
 
@@ -25,26 +26,34 @@ func TestVM_Eval(t *testing.T) {
 		{
 			name:   "add integers",
 			fields: fields{},
-			args: args{expr: ast.SExpr{
-				Operator: ast.Identifier{Tok: token.Token{Pos: 1, Value: "+", Kind: token.Plus}, Name: "+"},
-				Operands: []ast.Expr{
-					ast.Int{Tok: token.Token{Pos: 3, Value: "5", Kind: token.Int}, Value: 5},
-					ast.Int{Tok: token.Token{Pos: 5, Value: "3", Kind: token.Int}, Value: 3},
+			args: args{
+				expr: &ast.Call{
+					Func: &ast.Builtin{
+						Fn: builtin.AddInt64,
+					},
+					Args: []ast.Expr{
+						&ast.Int{Tok: token.Token{Pos: 3, Value: "5", Kind: token.Int}, Value: 5},
+						&ast.Int{Tok: token.Token{Pos: 5, Value: "3", Kind: token.Int}, Value: 3},
+					},
 				},
-			}},
+			},
 			want:    Value{value: int64(8), kind: Int},
 			wantErr: false,
 		},
 		{
 			name:   "add floats",
 			fields: fields{},
-			args: args{expr: ast.SExpr{
-				Operator: ast.Identifier{Tok: token.Token{Pos: 1, Value: "+", Kind: token.Plus}, Name: "+"},
-				Operands: []ast.Expr{
-					ast.Float{Tok: token.Token{Pos: 3, Value: "1.43", Kind: token.Float}, Value: 1.43},
-					ast.Float{Tok: token.Token{Pos: 5, Value: "9.35", Kind: token.Float}, Value: 9.35},
+			args: args{
+				expr: &ast.Call{
+					Func: &ast.Builtin{
+						Fn: builtin.AddFloat64,
+					},
+					Args: []ast.Expr{
+						&ast.Float{Tok: token.Token{Pos: 3, Value: "1.43", Kind: token.Float}, Value: 1.43},
+						&ast.Float{Tok: token.Token{Pos: 5, Value: "9.35", Kind: token.Float}, Value: 9.35},
+					},
 				},
-			}},
+			},
 			want:    Value{value: 10.78, kind: Float},
 			wantErr: false,
 		},

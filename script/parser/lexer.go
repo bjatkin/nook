@@ -15,7 +15,6 @@ var matchers = []matcher{
 	matchString,
 	matchComment,
 	matchCommand,
-	// matchWhitespace,
 	matchIdentifier,
 }
 

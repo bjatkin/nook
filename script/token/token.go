@@ -151,3 +151,7 @@ type Token struct {
 	Value string
 	Kind  Kind
 }
+
+func (t *Token) String() string {
+	return fmt.Sprintf("%d: %s(%s)", t.Pos, t.Value, t.Kind)
+}
